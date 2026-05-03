@@ -724,6 +724,62 @@ select.field-inp{cursor:pointer}
 .btn-success{background:var(--go);color:#060910}
 .btn-success:hover{background:var(--go2)}
 
+/* ── PROJETOS COMPARTILHADOS (sidebar) ───────────────────── */
+.proj-shared-section{padding:0 8px 6px}
+.proj-shared-label{
+  font-size:8px;font-weight:700;color:var(--t4);
+  letter-spacing:.14em;padding:10px 10px 5px;
+  display:flex;align-items:center;gap:5px;
+}
+.proj-btn.shared{opacity:.85}
+.proj-btn.shared .proj-dot{border:1.5px dashed currentColor;background:transparent!important}
+.shared-badge{
+  font-size:8px;padding:2px 6px;border-radius:10px;
+  background:rgba(91,79,233,.15);color:var(--ac2);
+  border:1px solid rgba(91,79,233,.25);font-weight:700;
+  margin-left:auto;flex-shrink:0;
+}
+
+/* ── PAINEL COMPARTILHAR PROJETO ─────────────────────────── */
+.share-form{display:flex;flex-direction:column;gap:14px}
+.share-user-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg3);border:1px solid var(--bd1);
+  border-radius:10px;padding:10px 14px;
+}
+.share-user-avatar{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;
+}
+.share-user-info{flex:1;min-width:0}
+.share-user-name{font-size:12px;font-weight:700;color:var(--t1)}
+.share-user-email{font-size:10px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.share-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1px solid var(--bd1);
+  border-radius:9px;padding:10px 13px;
+}
+.share-item-info{flex:1;min-width:0}
+.share-item-name{font-size:12px;font-weight:700;color:var(--t1)}
+.share-item-email{font-size:10px;color:var(--t3)}
+.share-item-revoke{
+  font-size:10px;padding:4px 10px;border-radius:6px;
+  border:1px solid var(--bd1);background:transparent;
+  color:var(--rd);cursor:pointer;font-family:inherit;font-weight:700;
+  transition:all .15s;
+}
+.share-item-revoke:hover{background:rgba(229,72,77,.1);border-color:var(--rd)}
+
+/* ── VIEW COMPARTILHADA (leitura restrita) ───────────────── */
+.shared-view-banner{
+  background:rgba(91,79,233,.08);border-bottom:1px solid rgba(91,79,233,.2);
+  padding:8px 24px;display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--ac2);font-weight:600;
+}
+
 /* ── COLABORADORES ────────────────────────────────────────── */
 .collab-grid{display:flex;flex-direction:column;gap:10px}
 .collab-card{
@@ -969,8 +1025,130 @@ const {useState,useEffect,useRef}=React;
 // ── SUPABASE CONFIG ──────────────────────────────────────────────
 const SUPA_URL = 'https://meziaghbnhnfhakgkvgf.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lemlhZ2hibmhuZmhha2drdmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTE1ODYsImV4cCI6MjA5MjgyNzU4Nn0.Gy3ceR1WOMxSduMR9HcV1RuKO7eAdrF81DQ1cPDSaVA'; // anon key — safe to expose
-const USER_ID  = '783609b0-ea9b-434b-af2f-1636fa9441a3';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+// USER_ID agora é dinâmico — vem da sessão do Supabase Auth
+
+// ── LOGIN SCREEN ─────────────────────────────────────────────────
+function LoginScreen({onLogin}){
+  const[email,setEmail]=useState('');
+  const[password,setPassword]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[error,setError]=useState('');
+
+  async function handleLogin(){
+    if(!email.trim()||!password.trim())return;
+    setLoading(true);setError('');
+    const{data,error:err}=await sb.auth.signInWithPassword({email:email.trim(),password});
+    setLoading(false);
+    if(err){setError('Email ou senha incorretos.');return;}
+    onLogin(data.session);
+  }
+
+  const e=React.createElement;
+  return e('div',{style:{
+    display:'flex',alignItems:'center',justifyContent:'center',
+    height:'100vh',background:'#080D18',flexDirection:'column',gap:0
+  }},
+    // Logo area
+    e('div',{style:{textAlign:'center',marginBottom:40}},
+      e('div',{style:{
+        width:56,height:56,borderRadius:16,margin:'0 auto 16px',
+        background:'linear-gradient(135deg,#5B4FE9,#7B6FFF)',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:26,boxShadow:'0 8px 32px rgba(91,79,233,.45)'
+      }},'⬡'),
+      e('div',{style:{fontSize:22,fontWeight:800,color:'#EEF2FF',letterSpacing:'-.03em'}},'InsightOS'),
+      e('div',{style:{fontSize:10,color:'#4A587A',letterSpacing:'.12em',marginTop:4,fontWeight:600}},'STRATEGIC INTELLIGENCE')
+    ),
+
+    // Card
+    e('div',{style:{
+      background:'#0C1220',border:'1px solid #1A2540',borderRadius:18,
+      padding:'32px 36px',width:360,
+      boxShadow:'0 24px 64px rgba(0,0,0,.6)'
+    }},
+      e('div',{style:{fontSize:14,fontWeight:700,color:'#EEF2FF',marginBottom:6}},'Entrar no sistema'),
+      e('div',{style:{fontSize:12,color:'#4A587A',marginBottom:28}},'Acesso restrito. Use suas credenciais.'),
+
+      e('div',{style:{marginBottom:14}},
+        e('div',{style:{fontSize:10,fontWeight:700,color:'#4A587A',letterSpacing:'.07em',marginBottom:6}},'EMAIL'),
+        e('input',{
+          type:'email',value:email,
+          onChange:ev=>setEmail(ev.target.value),
+          onKeyDown:ev=>{if(ev.key==='Enter')document.getElementById('ios-pass').focus()},
+          placeholder:'seu@email.com',
+          style:{
+            width:'100%',background:'#111827',border:'1px solid #1A2540',
+            borderRadius:10,padding:'11px 14px',color:'#EEF2FF',
+            fontSize:13,fontFamily:'inherit',outline:'none',boxSizing:'border-box'
+          }
+        })
+      ),
+      e('div',{style:{marginBottom:22}},
+        e('div',{style:{fontSize:10,fontWeight:700,color:'#4A587A',letterSpacing:'.07em',marginBottom:6}},'SENHA'),
+        e('input',{
+          id:'ios-pass',type:'password',value:password,
+          onChange:ev=>setPassword(ev.target.value),
+          onKeyDown:ev=>{if(ev.key==='Enter')handleLogin()},
+          placeholder:'••••••••',
+          style:{
+            width:'100%',background:'#111827',border:'1px solid #1A2540',
+            borderRadius:10,padding:'11px 14px',color:'#EEF2FF',
+            fontSize:13,fontFamily:'inherit',outline:'none',boxSizing:'border-box'
+          }
+        })
+      ),
+
+      error&&e('div',{style:{
+        background:'rgba(229,72,77,.1)',border:'1px solid rgba(229,72,77,.25)',
+        borderRadius:8,padding:'10px 14px',color:'#E5484D',
+        fontSize:12,marginBottom:18,lineHeight:1.5
+      }},error),
+
+      e('button',{
+        onClick:handleLogin,disabled:loading,
+        style:{
+          width:'100%',background:loading?'#2E3D60':'#5B4FE9',
+          color:'#fff',border:'none',borderRadius:10,
+          padding:'12px',fontSize:13,fontWeight:700,
+          cursor:loading?'not-allowed':'pointer',
+          fontFamily:'inherit',letterSpacing:'.02em',
+          transition:'background .15s'
+        }
+      },loading?'Entrando…':'Entrar →')
+    ),
+    e('div',{style:{fontSize:10,color:'#2E3D60',marginTop:24}},
+      'InsightOS · Acesso privado'
+    )
+  );
+}
+
+// ── ROOT WRAPPER com Auth ────────────────────────────────────────
+function AppRoot(){
+  const[session,setSession]=useState(undefined); // undefined=carregando, null=não logado
+
+  useEffect(()=>{
+    // Verificar sessão existente
+    sb.auth.getSession().then(({data:{session}})=>setSession(session||null));
+    // Ouvir mudanças de auth
+    const{data:{subscription}}=sb.auth.onAuthStateChange((_,s)=>setSession(s||null));
+    return()=>subscription.unsubscribe();
+  },[]);
+
+  const e=React.createElement;
+
+  // Carregando sessão
+  if(session===undefined) return e('div',{style:{
+    display:'flex',alignItems:'center',justifyContent:'center',
+    height:'100vh',background:'#080D18',color:'#5B4FE9',fontSize:13,gap:10
+  }},e('span',{style:{animation:'pulse 2s infinite'}},'⬡'),'Verificando sessão…');
+
+  // Não logado
+  if(!session) return e(LoginScreen,{onLogin:s=>setSession(s)});
+
+  // Logado — passa o userId para o app
+  return e(InsightOS,{userId:session.user.id,userEmail:session.user.email});
+}
 
 // Project color/meta map (local — não vai ao banco)
 const PROJ_META = {
@@ -989,7 +1167,7 @@ const loadLocal = ()=>{
 const saveLocal = d=>{ try{localStorage.setItem(LOCAL_KEY,JSON.stringify(d))}catch{} };
 
 // ── SUPABASE DATA LAYER ──────────────────────────────────────────
-async function fetchProjects(){
+async function fetchProjects(USER_ID){
   const {data,error}=await sb.from('projects')
     .select('*').eq('user_id',USER_ID).order('created_at');
   if(error) throw error;
@@ -1001,7 +1179,7 @@ async function fetchProjects(){
   }));
 }
 
-async function fetchInsights(){
+async function fetchInsights(USER_ID){
   const {data,error}=await sb.from('insights')
     .select('*').eq('user_id',USER_ID).order('created_at',{ascending:false});
   if(error) throw error;
@@ -1028,7 +1206,7 @@ async function sbUpdateInsight(id, fields){
   await sb.from('insights').update(map).eq('id',id);
 }
 
-async function sbInsertInsight(projectId, title, category, urgency, source){
+async function sbInsertInsight(USER_ID,projectId, title, category, urgency, source){
   const {data,error}=await sb.from('insights').insert({
     user_id:USER_ID, project_id:projectId, title,
     category, urgency, status:'inbox', source,
@@ -1044,7 +1222,7 @@ async function sbInsertInsight(projectId, title, category, urgency, source){
   };
 }
 
-async function sbInsertProject(name, description, color, status){
+async function sbInsertProject(USER_ID,name, description, color, status){
   const {data,error}=await sb.from('projects').insert({
     user_id:USER_ID, name, description, status, color
   }).select('*').single();
@@ -1063,19 +1241,19 @@ async function sbDeleteInsight(id){
 // ── LEGACY COMPAT (local-only state) ────────────────────────────
 const persist=()=>{}; // no-op, writes go to Supabase now
 
-async function fetchCollabs(){
+async function fetchCollabs(USER_ID){
   const {data,error}=await sb.from('collaborators').select('*').eq('owner_user_id',USER_ID).order('created_at');
   if(error)return [];
   return data||[];
 }
 
-async function fetchMeetings(){
+async function fetchMeetings(USER_ID){
   const {data,error}=await sb.from('meetings').select('*').eq('user_id',USER_ID).order('scheduled_at');
   if(error)return [];
   return data||[];
 }
 
-async function sbInviteCollab(name,phone){
+async function sbInviteCollab(USER_ID,name,phone){
   const {data,error}=await sb.from('collaborators').insert({
     owner_user_id:USER_ID, collaborator_name:name, phone, status:'pending'
   }).select('*').single();
@@ -1083,7 +1261,7 @@ async function sbInviteCollab(name,phone){
   return data;
 }
 
-async function sbCreateMeeting(fields){
+async function sbCreateMeeting(USER_ID,fields){
   const {data,error}=await sb.from('meetings').insert({
     user_id:USER_ID,...fields
   }).select('*').single();
@@ -1093,6 +1271,73 @@ async function sbCreateMeeting(fields){
 
 async function sbUpdateMeeting(id,fields){
   await sb.from('meetings').update(fields).eq('id',id);
+}
+
+// ── COMPARTILHAMENTO DE PROJETOS ─────────────────────────────────
+async function fetchSharedProjects(USER_ID){
+  // Busca projetos compartilhados COM este usuário (ele é o guest)
+  const {data,error}=await sb.from('project_shares')
+    .select('project_id, owner_user_id, created_at')
+    .eq('guest_user_id',USER_ID)
+    .eq('status','active');
+  if(error||!data||data.length===0) return [];
+  // Busca os dados dos projetos
+  const ids=data.map(r=>r.project_id);
+  const {data:projs}=await sb.from('projects').select('*').in('id',ids);
+  return (projs||[]).map(p=>({
+    id:p.id, name:p.name, color:projColor(p.name),
+    status:p.status||'active', description:p.description||'',
+    createdAt:p.created_at?.split('T')[0]||today(),
+    isShared:true, insights:[]
+  }));
+}
+
+async function fetchProjectShares(USER_ID, projectId){
+  // Quem o dono compartilhou este projeto
+  const {data}=await sb.from('project_shares')
+    .select('id, guest_user_id, status, created_at')
+    .eq('project_id',projectId)
+    .eq('owner_user_id',USER_ID)
+    .eq('status','active');
+  return data||[];
+}
+
+async function sbShareProject(ownerUserId, projectId, guestEmail){
+  // 1. Resolve email → user_id via função RPC
+  const {data:guestId,error:rpcErr}=await sb.rpc('get_user_id_by_email',{p_email:guestEmail});
+  if(rpcErr||!guestId) throw new Error('Usuário não encontrado com este email.');
+  if(guestId===ownerUserId) throw new Error('Você não pode compartilhar com você mesmo.');
+  // 2. Cria o compartilhamento
+  const {data,error}=await sb.from('project_shares').insert({
+    project_id:projectId,
+    owner_user_id:ownerUserId,
+    guest_user_id:guestId,
+    status:'active'
+  }).select('*').single();
+  if(error){
+    if(error.code==='23505') throw new Error('Este usuário já tem acesso a este projeto.');
+    throw new Error(error.message);
+  }
+  return {shareId:data.id, guestId};
+}
+
+async function sbRevokeShare(shareId){
+  await sb.from('project_shares').update({status:'revoked'}).eq('id',shareId);
+}
+
+async function fetchSharedMeetings(USER_ID, projectId){
+  // Reuniões do projeto compartilhado onde o guest é collaborator
+  const {data}=await sb.from('meetings')
+    .select('*')
+    .eq('project_id',projectId)
+    .order('scheduled_at',{ascending:false});
+  return data||[];
+}
+
+async function fetchSharedInsights(insightIds){
+  if(!insightIds||insightIds.length===0) return [];
+  const {data}=await sb.from('insights').select('*').in('id',insightIds);
+  return data||[];
 }
 
 // ── AI ENGINE ────────────────────────────────────────────────────
@@ -1421,7 +1666,8 @@ function VideoRoom({meetingId,userName}){
 }
 
 // ── APP ──────────────────────────────────────────────────────────
-function InsightOS(){
+function InsightOS({userId,userEmail}){
+  const USER_ID=userId; // dinâmico — vem da sessão Auth
   // ── STATE ──────────────────────────────────────────────────────
   const[projects,setProjects]=useState([]);
   const[insights,setInsights]=useState([]);
@@ -1458,6 +1704,12 @@ function InsightOS(){
   const[roomChat,setRoomChat]=useState([]);
   const[roomInp,setRoomInp]=useState('');
   const[roomTimer,setRoomTimer]=useState(0);
+  // ── Compartilhamento ──
+  const[sharedProjects,setSharedProjects]=useState([]);  // projetos compartilhados COM mim
+  const[shareEmail,setShareEmail]=useState('');
+  const[shareLoading,setShareLoading]=useState(false);
+  const[shareList,setShareList]=useState([]);            // quem tem acesso ao projeto atual
+  const[sharedView,setSharedView]=useState(null);        // {project, meetings, insights} — visão restrita
 
   function saveLocal(fn){ setLocal_(p=>{const n=typeof fn==='function'?fn(p):fn; saveLocal_(n); return n;}); }
   function saveLocal_(d){ try{localStorage.setItem(LOCAL_KEY,JSON.stringify(d))}catch{} }
@@ -1466,9 +1718,14 @@ function InsightOS(){
   useEffect(()=>{
     (async()=>{
       try{
-        const[projs,ins,cls,mtgs]=await Promise.all([fetchProjects(),fetchInsights(),fetchCollabs(),fetchMeetings()]);
+        const[projs,ins,cls,mtgs,sharedProjs]=await Promise.all([
+          fetchProjects(USER_ID),fetchInsights(USER_ID),
+          fetchCollabs(USER_ID),fetchMeetings(USER_ID),
+          fetchSharedProjects(USER_ID)
+        ]);
         setCollabs(cls);
         setMeetings(mtgs);
+        setSharedProjects(sharedProjs);
         // attach insights to projects
         const projMap={};
         projs.forEach(p=>{projMap[p.id]=p; p.insights=[]});
@@ -1487,7 +1744,7 @@ function InsightOS(){
   useEffect(()=>{
     const iv=setInterval(async()=>{
       try{
-        const ins=await fetchInsights();
+        const ins=await fetchInsights(USER_ID);
         setInsights(ins);
         setProjects(prev=>{
           const projMap={};
@@ -1550,7 +1807,7 @@ function InsightOS(){
     const tPid=cap.proj||projects[0]?.id;
     if(!tPid)return;
     try{
-      const ins=await sbInsertInsight(tPid,cap.text.trim(),'Estratégia','medium','manual');
+      const ins=await sbInsertInsight(USER_ID,tPid,cap.text.trim(),'Estratégia','medium','manual');
       const newIns_={...ins,pId:tPid};
       setProjects(prev=>prev.map(p=>p.id===tPid?{...p,insights:[newIns_,...p.insights]}:p));
       setInsights(prev=>[newIns_,...prev]);
@@ -1564,7 +1821,7 @@ function InsightOS(){
   async function mkProj(){
     if(!np.name.trim())return;
     try{
-      const p=await sbInsertProject(np.name.toUpperCase(),np.desc,np.color,'planning');
+      const p=await sbInsertProject(USER_ID,np.name.toUpperCase(),np.desc,np.color,'planning');
       setProjects(prev=>[...prev,p]);
       setNp({name:'',desc:'',color:'#5B4FE9'});setPan(null);setPid(p.id);setView('pipeline');toast_('Projeto criado');
     }catch(err){toast_('Erro: '+err.message,'error')}
@@ -1573,7 +1830,7 @@ function InsightOS(){
   async function mkIns(){
     if(!ni.trim()||!pid)return;
     try{
-      const ins=await sbInsertInsight(pid,ni.trim(),'Estratégia','medium','manual');
+      const ins=await sbInsertInsight(USER_ID,pid,ni.trim(),'Estratégia','medium','manual');
       const newIns_={...ins,pId:pid,reviewed:true,status:'idea'};
       await sbUpdateInsight(ins.id,{reviewed:true,status:'idea'});
       setProjects(prev=>prev.map(p=>p.id===pid?{...p,insights:[newIns_,...p.insights]}:p));
@@ -1662,7 +1919,7 @@ function InsightOS(){
   async function sendInvite(){
     if(!inviteForm.name.trim()||!inviteForm.phone.trim())return;
     try{
-      const c=await sbInviteCollab(inviteForm.name.trim(),inviteForm.phone.trim());
+      const c=await sbInviteCollab(USER_ID,inviteForm.name.trim(),inviteForm.phone.trim());
       setCollabs(prev=>[...prev,c]);
       // Send WhatsApp notification
       const msg='👋 *Olá '+inviteForm.name.trim()+'!*\n\nPablo te convidou para colaborar no InsightOS.\n\nVocê receberá acesso em breve para acompanhar os projetos e reuniões de alinhamento.';
@@ -1680,7 +1937,7 @@ function InsightOS(){
     if(!meetingForm.title||!meetingForm.date||!meetingForm.time)return;
     try{
       const scheduled_at=new Date(meetingForm.date+'T'+meetingForm.time+':00').toISOString();
-      const m=await sbCreateMeeting({
+      const m=await sbCreateMeeting(USER_ID,{
         title:meetingForm.title,
         scheduled_at,
         duration_min:meetingForm.duration,
@@ -1710,6 +1967,56 @@ function InsightOS(){
       setShowNewMeeting(false);
       toast_('Reunião criada e colaborador notificado ✓');
     }catch(err){toast_('Erro: '+err.message,'error')}
+  }
+
+  // ── COMPARTILHAMENTO ──────────────────────────────────────────
+  async function openSharePanel(projectId){
+    setPan('share');
+    setShareEmail('');
+    const list=await fetchProjectShares(USER_ID, projectId);
+    setShareList(list);
+  }
+
+  async function doShareProject(){
+    if(!shareEmail.trim()||!pid) return;
+    setShareLoading(true);
+    try{
+      await sbShareProject(USER_ID, pid, shareEmail.trim());
+      // Notifica via WhatsApp se o convidado tiver número cadastrado
+      const proj=projects.find(p=>p.id===pid);
+      try{
+        await fetch(NOTIFY_URL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            phone:shareEmail.replace(/\D/g,''), // tenta como número — fallback silencioso
+            message:`👥 *${userEmail} compartilhou o projeto "${proj?.name||''}" com você no InsightOS.*\n\nFaça login para acessar: https://pablocooke01-sudo.github.io/insightos`
+          })
+        });
+      }catch{/* silencia erro de notificação */}
+      // Atualiza lista
+      const list=await fetchProjectShares(USER_ID,pid);
+      setShareList(list);
+      setShareEmail('');
+      toast_('Projeto compartilhado ✓');
+    }catch(err){toast_(err.message,'error')}
+    setShareLoading(false);
+  }
+
+  async function doRevokeShare(shareId){
+    await sbRevokeShare(shareId);
+    setShareList(p=>p.filter(s=>s.id!==shareId));
+    toast_('Acesso removido');
+  }
+
+  async function openSharedProject(proj){
+    // Carrega reuniões e insights visíveis para este projeto compartilhado
+    const mtgs=await fetchSharedMeetings(USER_ID, proj.id);
+    const allInsightIds=[...new Set(mtgs.flatMap(m=>m.insights_pablo||[]))];
+    const ins=await fetchSharedInsights(allInsightIds);
+    setSharedView({project:proj, meetings:mtgs, insights:ins});
+    setView('shared_view');
+    setIid(null);
   }
 
   function enterRoom(meeting){
@@ -1849,6 +2156,60 @@ function InsightOS(){
       ))
     );
 
+    if(pan==='share'){
+      const proj=pid?projects.find(p=>p.id===pid):null;
+      return e(React.Fragment,null,
+        e('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:6}},
+          proj&&e('div',{style:{width:10,height:10,borderRadius:'50%',background:proj.color,flexShrink:0}}),
+          e('div',{className:'ov-title',style:{marginBottom:0}},'Compartilhar projeto'),
+        ),
+        e('div',{className:'ov-sub',style:{marginBottom:20}},
+          'O convidado verá apenas a ata e os insights selecionados nas reuniões. Dados pessoais permanecem privados.'
+        ),
+
+        // Input de email
+        e('div',{style:{marginBottom:14}},
+          e('div',{style:{fontSize:10,fontWeight:700,color:'var(--t3)',letterSpacing:'.07em',marginBottom:6}},'EMAIL DO USUÁRIO InsightOS'),
+          e('div',{style:{display:'flex',gap:8}},
+            e('input',{
+              value:shareEmail,
+              onChange:ev=>setShareEmail(ev.target.value),
+              onKeyDown:ev=>{if(ev.key==='Enter')doShareProject()},
+              placeholder:'email@dominio.com',
+              className:'field-inp',
+              style:{flex:1}
+            }),
+            e('button',{
+              onClick:doShareProject,
+              disabled:shareLoading||!shareEmail.trim(),
+              className:'btn btn-primary',
+              style:{whiteSpace:'nowrap',opacity:shareLoading||!shareEmail.trim()?.length?0.5:1}
+            },shareLoading?'…':'Compartilhar')
+          )
+        ),
+
+        // Lista de quem já tem acesso
+        shareList.length>0&&e('div',null,
+          e('div',{style:{fontSize:10,fontWeight:700,color:'var(--t3)',letterSpacing:'.07em',marginBottom:10}},'COM ACESSO'),
+          e('div',{className:'share-list'},
+            shareList.map(s=>e('div',{key:s.id,className:'share-item'},
+              e('div',{className:'share-user-avatar'},s.guest_user_id.slice(0,1).toUpperCase()),
+              e('div',{className:'share-item-info'},
+                e('div',{className:'share-item-name'},'Usuário convidado'),
+                e('div',{className:'share-item-email'},'Desde '+new Date(s.created_at).toLocaleDateString('pt-BR'))
+              ),
+              e('button',{className:'share-item-revoke',onClick:()=>doRevokeShare(s.id)},'Remover')
+            ))
+          )
+        ),
+
+        shareList.length===0&&e('div',{style:{
+          textAlign:'center',padding:'20px 0 4px',
+          color:'var(--t3)',fontSize:12,lineHeight:1.8
+        }},'Nenhum compartilhamento ativo.',e('br'),'Adicione um email acima.')
+      );
+    }
+
     if(pan==='brief') return e(React.Fragment,null,
       e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}},
         e('div',{className:'ov-title',style:{marginBottom:0}},'◆ Briefing Estratégico'),
@@ -1911,6 +2272,29 @@ function InsightOS(){
         e('button',{className:'add-proj',onClick:()=>setPan('np')},'+ Novo projeto')
       ),
 
+      // ── Projetos compartilhados comigo ──
+      sharedProjects.length>0&&e('div',{className:'proj-shared-section'},
+        e('div',{className:'proj-shared-label'},
+          '👥',e('span',null,'COMPARTILHADOS')
+        ),
+        sharedProjects.map(p=>{
+          const ac=view==='shared_view'&&sharedView?.project?.id===p.id;
+          return e('button',{
+            key:p.id,
+            className:'proj-btn shared'+(ac?' active':''),
+            style:{'--proj-c':p.color},
+            onClick:()=>openSharedProject(p)
+          },
+            e('div',{className:'proj-dot',style:{borderColor:p.color,color:p.color}}),
+            e('div',{className:'proj-info'},
+              e('div',{className:'proj-name'},p.name),
+              e('div',{className:'proj-meta'},'Acesso restrito')
+            ),
+            e('div',{className:'shared-badge'},'👁')
+          )
+        })
+      ),
+
       e('div',{className:'rail-foot'},
         e('button',{className:'foot-btn capture',onClick:()=>setPan('cap')},'📱','Captura rápida'),
         e('button',{className:'foot-btn',onClick:()=>setView('vault')},
@@ -1940,6 +2324,15 @@ function InsightOS(){
         e('button',{className:'theme-btn',onClick:()=>setTheme(t=>t==='dark'?'light':'dark')},
           theme==='dark'?'☀️':'🌙',
           theme==='dark'?'Tema claro':'Tema escuro'
+        ),
+        e('div',{style:{borderTop:'1px solid var(--bd0)',margin:'6px 0',paddingTop:8}},
+          e('div',{style:{fontSize:9,color:'var(--t4)',letterSpacing:'.07em',fontWeight:700,padding:'0 10px 5px'}},'SESSÃO ATIVA'),
+          e('div',{style:{fontSize:10,color:'var(--t3)',padding:'0 10px 8px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},userEmail),
+          e('button',{
+            className:'foot-btn',
+            style:{color:'var(--rd)',width:'100%'},
+            onClick:async()=>{await sb.auth.signOut();}
+          },'↩','Sair')
         )
       )
     ),
@@ -2026,7 +2419,12 @@ function InsightOS(){
                 e('div',{style:{fontSize:18,fontWeight:800,color:s.c,letterSpacing:'-.04em',lineHeight:1}},s.n),
                 e('div',{style:{fontSize:8,color:'var(--t3)',letterSpacing:'.08em'}},s.l.toUpperCase())
               )),
-            e('button',{className:'cap-btn',onClick:()=>setPan('ni')},'+ Insight')
+            e('button',{className:'cap-btn',onClick:()=>setPan('ni')},'+ Insight'),
+            e('button',{
+              className:'btn btn-ghost',
+              style:{fontSize:10,padding:'6px 12px',display:'flex',alignItems:'center',gap:5},
+              onClick:()=>openSharePanel(pid)
+            },'👥 Compartilhar')
           )
         ),
         e('div',{className:'pipe-wrap'},
@@ -2060,6 +2458,64 @@ function InsightOS(){
               )
             )
           })
+        )
+      ),
+
+      // ── PROJETO COMPARTILHADO (visão restrita) ─────────────────────────────
+      view==='shared_view'&&sharedView&&e(React.Fragment,null,
+        // Banner de aviso
+        e('div',{className:'shared-view-banner'},
+          '👁 ',e('strong',null,'Visão restrita'),
+          ' — Você vê apenas atas e insights selecionados pelo dono do projeto.'
+        ),
+        e('div',{className:'chead'},
+          e('div',{style:{display:'flex',alignItems:'center',gap:10}},
+            e('div',{style:{width:8,height:8,borderRadius:'50%',background:sharedView.project.color}}),
+            e('div',{className:'chead-title',style:{fontSize:16}},sharedView.project.name),
+            e('span',{style:{fontSize:9,padding:'2px 8px',borderRadius:4,background:'rgba(91,79,233,.15)',color:'var(--ac2)',fontWeight:700,letterSpacing:'.05em'}},'COMPARTILHADO')
+          )
+        ),
+
+        // Reuniões com ata
+        e('div',{style:{padding:'20px 24px',overflowY:'auto',flex:1}},
+          sharedView.meetings.length===0&&e('div',{className:'empty-state'},
+            e('div',{className:'empty-state-icon'},'📋'),
+            e('div',{className:'empty-state-title'},'Nenhuma reunião ainda'),
+            e('div',{className:'empty-state-sub'},'Quando houver reuniões com ata, elas aparecerão aqui.')
+          ),
+          sharedView.meetings.length>0&&e('div',null,
+            e('div',{style:{fontSize:10,fontWeight:700,color:'var(--t3)',letterSpacing:'.07em',marginBottom:16}},'REUNIÕES E ATAS'),
+            sharedView.meetings.map(m=>{
+              const mIns=sharedView.insights.filter(i=>(m.insights_pablo||[]).includes(i.id));
+              return e('div',{key:m.id,style:{
+                background:'var(--bg2)',border:'1px solid var(--bd1)',
+                borderRadius:14,padding:'20px 22px',marginBottom:14
+              }},
+                e('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:12}},
+                  e('div',{style:{fontSize:14,fontWeight:800,color:'var(--t1)'}},m.title),
+                  e('div',{style:{fontSize:10,color:'var(--t3)',marginLeft:'auto'}},
+                    new Date(m.scheduled_at).toLocaleDateString('pt-BR',{day:'numeric',month:'short',year:'numeric'})
+                  )
+                ),
+                // Insights selecionados
+                mIns.length>0&&e('div',{style:{marginBottom:14}},
+                  e('div',{style:{fontSize:10,fontWeight:700,color:'var(--t3)',letterSpacing:'.06em',marginBottom:8}},'INSIGHTS EM PAUTA'),
+                  mIns.map(i=>e('div',{key:i.id,style:{
+                    background:'var(--bg3)',border:'1px solid var(--bd0)',
+                    borderRadius:8,padding:'10px 14px',marginBottom:6
+                  }},
+                    e('div',{style:{fontSize:11,fontWeight:700,color:'var(--t1)',marginBottom:3}},i.title),
+                    e('div',{style:{fontSize:10,color:'var(--t3)'}},i.category+' · '+(i.urgency==='high'?'Alta':i.urgency==='medium'?'Média':'Futura'))
+                  ))
+                ),
+                // Ata
+                m.ata?e('div',null,
+                  e('div',{style:{fontSize:10,fontWeight:700,color:'var(--t3)',letterSpacing:'.06em',marginBottom:8}},'ATA DA REUNIÃO'),
+                  e('div',{style:{fontSize:12,lineHeight:1.8,color:'var(--t2)',background:'var(--bg3)',borderRadius:8,padding:'14px 16px'},dangerouslySetInnerHTML:{__html:md(m.ata)}})
+                ):e('div',{style:{fontSize:12,color:'var(--t4)',fontStyle:'italic'}},'Ata não disponível ainda.')
+              )
+            })
+          )
         )
       ),
 
@@ -2443,7 +2899,7 @@ function InsightOS(){
   )
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(InsightOS));
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(AppRoot));
 
 </script>
 </body>
