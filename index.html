@@ -2095,8 +2095,7 @@ function InsightOS({userId,userEmail}){
   const tDone=allIns.filter(i=>i.status==='done').length;
 
   // ── PANEL CONTENT ──────────────────────────────────────────────────────────
-  // Usando React.useCallback para evitar re-render que perde foco dos inputs
-  const PanelContent=React.useCallback(function PanelContent(){
+  function PanelContent(){
     if(pan==='cap') return e(React.Fragment,null,
       e('div',{className:'ov-title'},'📱 Captura rápida'),
       e('div',{className:'ov-sub'},'Simula a captura via WhatsApp. Em produção: áudio → transcrição automática → inbox.'),
@@ -2221,8 +2220,7 @@ function InsightOS({userId,userEmail}){
     );
 
     return null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[pan, cap, np, ni, projects, shareEmail, shareList, shareLoading, local, bl, pid]);
+  }
 
   // ── MAIN RENDER ────────────────────────────────────────────────────────────
   return e('div',{className:'root'},
